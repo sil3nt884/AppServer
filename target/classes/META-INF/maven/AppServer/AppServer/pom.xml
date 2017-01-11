@@ -48,11 +48,6 @@
 
 
 
- <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-jsp</artifactId>
-      <version>9.2.19.v20160908</version>
-    </dependency>
     
     
     <dependency>

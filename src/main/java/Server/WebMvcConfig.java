@@ -12,8 +12,9 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter
 	public void addResourceHandlers(ResourceHandlerRegistry registry)
 	{
 		registry.addResourceHandler(new String[] { "/**" }).addResourceLocations(new String[] { "/" });
-		registry.addResourceHandler(new String[] { "blog" }).addResourceLocations(new String[] { "/blog/" });
-		registry.addResourceHandler(new String[] { "images/**" }).addResourceLocations(new String[] { "images/" });
+		
+		
+		
 	}
 }
 

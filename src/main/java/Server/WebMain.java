@@ -2,6 +2,8 @@ package Server;
 
 import java.io.IOException;
 
+import javax.servlet.MultipartConfigElement;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -44,7 +46,9 @@ public class WebMain {
 		ServletContextHandler contextHandler = new ServletContextHandler();
 		contextHandler.setErrorHandler(null);
 		contextHandler.setContextPath("/");
-		contextHandler.addServlet(new ServletHolder(new DispatcherServlet(context)), "/*");
+		ServletHolder  holder = new ServletHolder(new DispatcherServlet(context));
+		holder.getRegistration().setMultipartConfig(new MultipartConfigElement ("/web/uploads"));
+		contextHandler.addServlet(holder, "/*");
 		contextHandler.addEventListener(new ContextLoaderListener(context));
 		contextHandler.setResourceBase("/web");
 		AppConfig.setContext(context);
