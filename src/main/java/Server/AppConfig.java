@@ -5,6 +5,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
@@ -22,6 +23,8 @@ public class AppConfig {
 	@Bean
 	  public ViewResolver viewResolver() {
 	    ThymeleafViewResolver resolver = new ThymeleafViewResolver();
+	    
+	    
 	   
 	    resolver.setTemplateEngine(templateEngine());
 
@@ -31,17 +34,22 @@ public class AppConfig {
 	  @Bean
 	  public TemplateEngine templateEngine() {
 	    SpringTemplateEngine engine = new SpringTemplateEngine();
-	  
+	    
+	    
 	    engine.setEnableSpringELCompiler(true);
 	    engine.setTemplateResolver(templateResolver());
 	    return engine;
 	  }
 	  
 	
+	
+
 
 	  
-	  private ITemplateResolver templateResolver() {
+	
+	private ITemplateResolver templateResolver() {
 	    SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
+	  
 	    resolver.setApplicationContext(contexts);
 	    resolver.setCacheable(true);
 	    resolver.setTemplateMode(TemplateMode.HTML);
@@ -53,6 +61,7 @@ public class AppConfig {
 	
 	  public static  void setContext(WebApplicationContext context  ){
 		 contexts=context;
+		 
 	  }
 
 	

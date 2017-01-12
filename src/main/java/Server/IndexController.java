@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +29,7 @@ public class IndexController
 	
 	public void  getUploads (){
 	
-		 File folder = new File("/web/uploads");
+		 File folder = new File("/web/data");
 		 System.err.println(folder.getAbsolutePath());
 		 File[] list= folder.listFiles();
 		 lists = list;
@@ -36,17 +37,15 @@ public class IndexController
 		
 	}
 	
-	public void upload(String file){
-		
-	}
 	
+
 	
 	
 	 @RequestMapping(value={"/upload"}, method={RequestMethod.POST})
 	  public String upload( @RequestParam("upload") MultipartFile file ,HttpServletResponse response) throws IOException
 	  {	  
 	    
-		File newfile = new File ("/web/uploads/"+file.getOriginalFilename());
+		File newfile = new File ("/web/data/"+file.getOriginalFilename());
 		InputStream in = file.getInputStream();
 		BufferedInputStream  bin = new BufferedInputStream(in);
 		int read = 0;
@@ -77,20 +76,25 @@ public class IndexController
 	   
 	  }
 	
-	
-	
+	 
+	 
+	 
+	 
 	
 	  @RequestMapping(value={"/"}, method={RequestMethod.GET})
 	  public ModelAndView getDomain(ModelAndView model, HttpServletRequest request ,HttpServletResponse response)
 	  {
-	    
+		  	
 		  	getUploads ();
+		  
 		  	model.addObject("files", lists);
 		  	model.setViewName("index.html");
 	    
 	    	
 	    return model;
 	  }
+	  
+	 
 	  
 	
 	  
