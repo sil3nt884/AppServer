@@ -7,6 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
 
 import javax.imageio.IIOImage;
@@ -42,21 +47,25 @@ public class IndexController {
 	public String upload(@RequestParam("upload") MultipartFile file, HttpServletResponse response) throws IOException {
 
 		File newfile = new File("/web/data/" + file.getOriginalFilename());
-
 		InputStream in = file.getInputStream();
-		BufferedInputStream bin = new BufferedInputStream(in);
-		int read = 0;
+		ReadableByteChannel inChannel = Channels.newChannel(in);
 		FileOutputStream out = new FileOutputStream(newfile);
-
-		while ((read = bin.read()) != -1) {
-			out.write(read);
-
+		WritableByteChannel outChannel = Channels.newChannel(out);	
+		ByteBuffer buffer = ByteBuffer.allocate(8192);
+		int read = 0;
+		while((read = inChannel.read(buffer)) >0){
+			buffer.rewind();
+			buffer.limit(read);
+			while(read> 0){
+				read -= outChannel.write(buffer);
+			}
+			 buffer.clear();
 		}
-		out.flush();
-		out.close();
+	
+		
+	
 
-		if (newfile.getName().contains(".jpg") || newfile.getName().contains(".png")
-				|| newfile.getName().contains(".gif")) {
+		if (newfile.getName().contains(".jpg")) {
 
 			compressedimage(newfile);
 		}
@@ -71,15 +80,7 @@ public class IndexController {
 			BufferedImage image = ImageIO.read(newfile.getAbsoluteFile());
 			File compressedImageFile = new File("/web/data/" + newfile.getName());
 			OutputStream os = new FileOutputStream(compressedImageFile);
-			Iterator<ImageWriter> writers = null;
-			if (newfile.getName().contains("jpg")) {
-				writers = ImageIO.getImageWritersByFormatName("jpg");
-			} else if (newfile.getName().contains("png")) {
-				writers = ImageIO.getImageWritersByFormatName("png");
-			} else if (newfile.getName().contains("gif")) {
-				writers = ImageIO.getImageWritersByFormatName("gif");
-			}
-
+			Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
 			ImageWriter writer = (ImageWriter) writers.next();
 			ImageOutputStream ios = ImageIO.createImageOutputStream(os);
 			writer.setOutput(ios);
