@@ -18,6 +18,10 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
 @EnableWebMvc
 public class WebMvcConfig extends WebMvcConfigurerAdapter
 {
+	/**
+	 * Do not tocuh this file does not need to change.
+	 */
+	
 	public void addResourceHandlers(ResourceHandlerRegistry registry)
 	{
 		
