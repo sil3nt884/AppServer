@@ -23,6 +23,14 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 public class WebMain {
 
+	/**
+	 * Server up never needs to change 
+	 * do not touch this file.
+	 * 
+	 * @param args
+	 */
+	
+	
 	public static void main(String[] args) {
 		try {
 			new WebMain().startJetty(80);

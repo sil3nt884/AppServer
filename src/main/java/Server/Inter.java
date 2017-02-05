@@ -10,6 +10,13 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 public class Inter extends HandlerInterceptorAdapter {
 
+
+	/*
+	 * mp4 handling.
+	 * (non-Javadoc)
+	 * @see org.springframework.web.servlet.handler.HandlerInterceptorAdapter#preHandle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object)
+	 */
+	
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse res, Object handler) throws Exception {
 		System.out.println(request.getPathInfo());

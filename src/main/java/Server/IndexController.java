@@ -43,6 +43,14 @@ public class IndexController {
 
 	}
 
+	/**
+	 * File upload handler
+	 * 
+	 * @param file
+	 * @param response
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = { "/upload" }, method = { RequestMethod.POST })
 	public String upload(@RequestParam("upload") MultipartFile file, HttpServletResponse response) throws IOException {
 
@@ -50,20 +58,17 @@ public class IndexController {
 		InputStream in = file.getInputStream();
 		ReadableByteChannel inChannel = Channels.newChannel(in);
 		FileOutputStream out = new FileOutputStream(newfile);
-		WritableByteChannel outChannel = Channels.newChannel(out);	
+		WritableByteChannel outChannel = Channels.newChannel(out);
 		ByteBuffer buffer = ByteBuffer.allocate(8192);
 		int read = 0;
-		while((read = inChannel.read(buffer)) >0){
+		while ((read = inChannel.read(buffer)) > 0) {
 			buffer.rewind();
 			buffer.limit(read);
-			while(read> 0){
+			while (read > 0) {
 				read -= outChannel.write(buffer);
 			}
-			 buffer.clear();
+			buffer.clear();
 		}
-	
-		
-	
 
 		if (newfile.getName().contains(".jpg")) {
 
@@ -71,8 +76,7 @@ public class IndexController {
 		}
 
 		return "redirect:/";
-
-	}
+}
 
 	private void compressedimage(File newfile) {
 		try {
@@ -100,6 +104,15 @@ public class IndexController {
 		}
 
 	}
+	
+	
+	/**
+	 * Request upload endpoint.
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 
 	@RequestMapping(value = { "/uploads" }, method = { RequestMethod.GET })
 	public ModelAndView getUpload(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
@@ -107,6 +120,7 @@ public class IndexController {
 		return model;
 
 	}
+	
 
 	@RequestMapping(value = { "/" }, method = { RequestMethod.GET })
 	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
