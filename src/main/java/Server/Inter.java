@@ -19,7 +19,8 @@ public class Inter extends HandlerInterceptorAdapter {
 	
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse res, Object handler) throws Exception {
-		System.out.println(request.getPathInfo());
+		System.out.println(request.getHeader("X-FORWARDED-FOR")+":"+request.getPathInfo());
+		System.out.println(request.getRemoteAddr()+":"+request.getPathInfo());
 		if (request.getPathInfo().contains(".mp4")) {
 			File file = new File("/web/" + request.getPathInfo());
 			res.setContentLength((int) file.length());
