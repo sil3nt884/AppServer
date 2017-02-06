@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -87,6 +89,23 @@ public class CMSController {
 	public ModelAndView addUser(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
 		String user = request.getParameter("user");
 		String pass = request.getParameter("pass");
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			byte[] mdbytes = md.digest(pass.getBytes());
+
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < mdbytes.length; i++) {
+				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+			}
+
+			pass = sb.toString();
+			System.out.println(pass);
+
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		User created = new User(user, pass);
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -124,6 +143,21 @@ public class CMSController {
 		String user = request.getParameter("user");
 		String pass = request.getParameter("pass");
 
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-256");
+			byte[] mdbytes = md.digest(pass.getBytes());
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < mdbytes.length; i++) {
+				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+			}
+			pass = sb.toString();
+
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		/**
 		 * getting the "th:name" Parameter which is then set as the user name.
 		 * <form action="/cms/login" method="post"> user:
@@ -132,7 +166,6 @@ public class CMSController {
 		 */
 
 		for (int i = 0; i < userlist.length; i++) {
-			System.out.println(userlist[i]);
 			try {
 				User usr = mapper.readValue(new File("/web/cms/users/" + userlist[i]), User.class);
 

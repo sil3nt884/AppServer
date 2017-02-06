@@ -126,6 +126,14 @@ public class IndexController {
 
 	}
 	
+	
+	@RequestMapping(value = { "/cms/users/**"}, method = { RequestMethod.GET })
+	public  ModelAndView block(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		model.setViewName("/cms/nope/nope.html");
+		return model;
+
+	}
 
 	@RequestMapping(value = { "/" }, method = { RequestMethod.GET })
 	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
