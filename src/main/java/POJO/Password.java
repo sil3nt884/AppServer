@@ -12,8 +12,8 @@ import javax.crypto.spec.PBEKeySpec;
 public class Password {
 
 	public byte[] getEncryptedPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		String algorithm = "PBKDF2WithHmacSHA1";
-		int derivedKeyLength = 160;
+		String algorithm = "PBKDF2WithHmacSHA256";
+		int derivedKeyLength = 256;
 		int iterations = 20000;
 		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, derivedKeyLength);
 		SecretKeyFactory f = SecretKeyFactory.getInstance(algorithm);
