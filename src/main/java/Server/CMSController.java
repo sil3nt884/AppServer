@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import POJO.Password;
 import POJO.User;
 
 /**
@@ -89,24 +91,22 @@ public class CMSController {
 	public ModelAndView addUser(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
 		String user = request.getParameter("user");
 		String pass = request.getParameter("pass");
+		Password password = new Password();
+		byte[] salt = null;
+		byte[] passbtye = null;
 		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] mdbytes = md.digest(pass.getBytes());
+			salt = Password.genrateSalt();
+			passbtye = password.getEncryptedPassword(pass, salt);
 
-			StringBuffer sb = new StringBuffer();
-			for (int i = 0; i < mdbytes.length; i++) {
-				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
-			}
-
-			pass = sb.toString();
-			System.out.println(pass);
-
-		} catch (NoSuchAlgorithmException e1) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
-		User created = new User(user, pass);
+		pass = password.getHexValue(passbtye);
+		String saltstring = password.getHexValue(salt);
+
+		User created = new User(user, pass, saltstring);
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -132,31 +132,19 @@ public class CMSController {
 	 * 
 	 * @param model
 	 * @return
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchAlgorithmException
 	 */
 	// creates an new endpoint in this example its /login
 	// (www.websites.com/cms/login)
 	@RequestMapping(value = { "/cms/login" }, method = { RequestMethod.POST })
-	public ModelAndView login(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+	public ModelAndView login(ModelAndView model, HttpServletRequest request, HttpServletResponse response)
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
 		ObjectMapper mapper = new ObjectMapper();
 		String[] userlist = new File("/web/cms/users/").list();
 		boolean login = false;
 		String user = request.getParameter("user");
 		String pass = request.getParameter("pass");
-
-		MessageDigest md;
-		try {
-			md = MessageDigest.getInstance("SHA-256");
-			byte[] mdbytes = md.digest(pass.getBytes());
-			StringBuffer sb = new StringBuffer();
-			for (int i = 0; i < mdbytes.length; i++) {
-				sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
-			}
-			pass = sb.toString();
-
-		} catch (NoSuchAlgorithmException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 
 		/**
 		 * getting the "th:name" Parameter which is then set as the user name.
@@ -170,9 +158,13 @@ public class CMSController {
 				User usr = mapper.readValue(new File("/web/cms/users/" + userlist[i]), User.class);
 
 				if (usr.getUser().equalsIgnoreCase(user)) {
-					if (usr.getPass().equalsIgnoreCase(pass)) {
+					Password passwrd = new Password();
+					byte[] salt = passwrd.hexStringToByteArray(usr.getSalt());
+					byte[] encryptedPassword = passwrd.hexStringToByteArray(usr.getPass());
+					if (passwrd.authenticate(pass, encryptedPassword, salt)) {
 						login = true;
 					}
+
 				}
 
 			} catch (IOException e) {
