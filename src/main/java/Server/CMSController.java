@@ -2,6 +2,8 @@ package Server;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,9 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -91,6 +90,7 @@ public class CMSController {
 	public ModelAndView addUser(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
 		String user = request.getParameter("user");
 		String pass = request.getParameter("pass");
+		String email = request.getParameter("email");
 		Password password = new Password();
 		byte[] salt = null;
 		byte[] passbtye = null;
@@ -106,7 +106,7 @@ public class CMSController {
 		pass = password.getHexValue(passbtye);
 		String saltstring = password.getHexValue(salt);
 
-		User created = new User(user, pass, saltstring);
+		User created = new User(user, pass, saltstring, email);
 
 		ObjectMapper mapper = new ObjectMapper();
 
