@@ -7,11 +7,16 @@ public class User {
 	String user;
 	String pass;
 	String salt;
+	String email;
 	
-	public User (@JsonProperty("user")String user, @JsonProperty("pass")String pass,@JsonProperty("salt") String  salt){
+	
+
+
+	public User (@JsonProperty("user")String user, @JsonProperty("pass")String pass,@JsonProperty("salt") String  salt, @JsonProperty("email") String email){
 		this.user = user;
 		this.pass= pass;
 		this.salt = salt;
+		this.email=email;
 	
 	}
 	
@@ -41,4 +46,16 @@ public class User {
 	public void setPass(String pass){
 		this.pass=pass;
 	}
+	
+	public String getEmail() {
+		return email;
+	}
+
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+
+	
 }

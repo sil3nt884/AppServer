@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -37,7 +38,6 @@ public class IndexController {
 	public void getUploads() {
 
 		File folder = new File("/web/data");
-		System.err.println(folder.getAbsolutePath());
 		File[] list = folder.listFiles();
 		lists = list;
 
@@ -80,7 +80,6 @@ public class IndexController {
 
 	private void compressedimage(File newfile) {
 		try {
-			System.out.println("compressed " + newfile.getName());
 			BufferedImage image = ImageIO.read(newfile.getAbsoluteFile());
 			File compressedImageFile = new File("/web/data/" + newfile.getName());
 			OutputStream os = new FileOutputStream(compressedImageFile);
@@ -140,10 +139,9 @@ public class IndexController {
 	}
 
 	@RequestMapping(value = { "/" }, method = { RequestMethod.GET })
-	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		getUploads();
 		model.addObject("files", lists);
-		
 		model.setViewName("index.html");
 		
 		return model;

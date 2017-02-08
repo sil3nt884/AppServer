@@ -90,7 +90,7 @@ public class WebMain {
 
 	private static WebApplicationContext getContext() {
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-
+		
 		context.setConfigLocation("Server");
 
 		return context;
