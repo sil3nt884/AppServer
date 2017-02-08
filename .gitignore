@@ -1,4 +1,4 @@
-/target/
+target/
 release.properties
 buildNumber.properties
 .mvn/timing.properties
