@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -111,7 +113,7 @@ public class CMSController {
 		pass = password.getHexValue(passbtye);
 		String saltstring = password.getHexValue(salt);
 
-		User created = new User("1", "1", saltstring, "1");
+		User created = new User(user, pass, saltstring, email);
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -176,23 +178,49 @@ public class CMSController {
 		}
 
 		if (login) {
-			Session sess = createNewSession(usr.getUser(),usr.getSalt());
-			session.setAttribute("sessionUser", sess.getUser());
+			Calendar cal = Calendar.getInstance();
+		    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+			Session sess = createNewSession(usr.getUser()+":"+sdf.format(cal.getTime()),usr.getSalt());
+			session.setAttribute("sessionUser", sess.getUser().split(":")[0]);
 			session.setAttribute("sessionID", sess.getId());
 			session.setAttribute("sessionText", "Logout");
-			session.setAttribute("sessionHref", "Logout");
+			session.setAttribute("sessionHref", "/cms/logout");
+			model.setViewName("/cms/index.html");
+			
 		}
-		model.setViewName("/cms/index.html");
+		else if(!login){
+			model.setViewName("/cms/failed.html");
+		}
+		
 		return model;
 	}
 
 	private Session createNewSession(String user, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		
 		String id = getHexValue(getEncryptedPassword(user,hexStringToByteArray(salt)));
 		System.out.println(id);
 		long time =0;
 		Session session = new Session (id, user, time);
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			File db = new File("/web/cms/session/"+session.getUser().split(":")[0]+"_"+session.getId() + ".json");
+			mapper.writeValue(db, session);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return session;
 	}
+	
+	
+	@RequestMapping(value = { "/cms/logout" }, method = { RequestMethod.GET})
+	public void logout(){
+		//to be done.
+	}
+
+	
+	
 	
 	
 	private  byte[] getEncryptedPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
