@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import POJO.Password;
+import POJO.Session;
 import POJO.User;
 
 /**
@@ -106,7 +111,7 @@ public class CMSController {
 		pass = password.getHexValue(passbtye);
 		String saltstring = password.getHexValue(salt);
 
-		User created = new User(user, pass, saltstring, email);
+		User created = new User("1", "1", saltstring, "1");
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -138,8 +143,8 @@ public class CMSController {
 	// creates an new endpoint in this example its /login
 	// (www.websites.com/cms/login)
 	@RequestMapping(value = { "/cms/login" }, method = { RequestMethod.POST })
-	public ModelAndView login(ModelAndView model, HttpServletRequest request, HttpServletResponse response)
-			throws NoSuchAlgorithmException, InvalidKeySpecException {
+	public ModelAndView login(ModelAndView model, HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		ObjectMapper mapper = new ObjectMapper();
 		String[] userlist = new File("/web/cms/users/").list();
 		boolean login = false;
@@ -152,10 +157,10 @@ public class CMSController {
 		 * <input th:name="user" type="text"></input> pass:
 		 * <input type="password"> </input> <input type="submit"> </input>
 		 */
-
+		User usr = null;
 		for (int i = 0; i < userlist.length; i++) {
 			try {
-				User usr = mapper.readValue(new File("/web/cms/users/" + userlist[i]), User.class);
+				usr = mapper.readValue(new File("/web/cms/users/" + userlist[i]), User.class);
 
 				if (usr.getUser().equalsIgnoreCase(user)) {
 					Password passwrd = new Password();
@@ -164,23 +169,59 @@ public class CMSController {
 					if (passwrd.authenticate(pass, encryptedPassword, salt)) {
 						login = true;
 					}
-
 				}
-
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				model.setViewName("/cms/registration.html");
 			}
 		}
 
 		if (login) {
-			model.addObject("user", user);
-		} else {
-			model.addObject("user", "failed");
+			Session sess = createNewSession(usr.getUser(),usr.getSalt());
+			session.setAttribute("sessionUser", sess.getUser());
+			session.setAttribute("sessionID", sess.getId());
+			session.setAttribute("sessionText", "Logout");
+			session.setAttribute("sessionHref", "Logout");
 		}
-
 		model.setViewName("/cms/index.html");
 		return model;
+	}
+
+	private Session createNewSession(String user, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		String id = getHexValue(getEncryptedPassword(user,hexStringToByteArray(salt)));
+		System.out.println(id);
+		long time =0;
+		Session session = new Session (id, user, time);
+		return session;
+	}
+	
+	
+	private  byte[] getEncryptedPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		String algorithm = "PBKDF2WithHmacSHA256";
+		int derivedKeyLength = 256;
+		int iterations = 20000;
+		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, derivedKeyLength);
+		SecretKeyFactory f = SecretKeyFactory.getInstance(algorithm);
+		return f.generateSecret(spec).getEncoded();
+
+	}
+	
+	private String getHexValue(byte[] passbtye){
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < passbtye.length; i++) {
+			sb.append(Integer.toString((passbtye[i] & 0xff) + 0x100, 16).substring(1));
+		}
+
+		return sb.toString();
+	}
+	
+	private byte[] hexStringToByteArray(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2) {
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+	                             + Character.digit(s.charAt(i+1), 16));
+	    }
+	    return data;
 	}
 
 }
