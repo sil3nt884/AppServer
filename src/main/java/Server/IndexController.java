@@ -137,6 +137,17 @@ public class IndexController {
 		return model;
 
 	}
+	
+	@RequestMapping(value = { "/cms/session/**"}, method = { RequestMethod.GET })
+	public  ModelAndView sessionblock(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		model.setViewName("/cms/nope/nope.html");
+		return model;
+
+	}
+	
+	
+	
 
 	@RequestMapping(value = { "/" }, method = { RequestMethod.GET })
 	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) throws IOException {

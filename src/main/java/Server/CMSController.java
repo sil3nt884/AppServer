@@ -170,6 +170,7 @@ public class CMSController {
 					byte[] encryptedPassword = passwrd.hexStringToByteArray(usr.getPass());
 					if (passwrd.authenticate(pass, encryptedPassword, salt)) {
 						login = true;
+						break;
 					}
 				}
 			} catch (IOException e) {
@@ -179,51 +180,64 @@ public class CMSController {
 
 		if (login) {
 			Calendar cal = Calendar.getInstance();
-		    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-			Session sess = createNewSession(usr.getUser()+":"+sdf.format(cal.getTime()),usr.getSalt());
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+			Session sess = createNewSession(usr.getUser() + ":" + sdf.format(cal.getTime()), usr.getSalt());
 			session.setAttribute("sessionUser", sess.getUser().split(":")[0]);
 			session.setAttribute("sessionID", sess.getId());
 			session.setAttribute("sessionText", "Logout");
 			session.setAttribute("sessionHref", "/cms/logout");
 			model.setViewName("/cms/index.html");
-			
-		}
-		else if(!login){
+
+		} else if (!login) {
 			model.setViewName("/cms/failed.html");
 		}
-		
+
 		return model;
 	}
 
-	private Session createNewSession(String user, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		
-		String id = getHexValue(getEncryptedPassword(user,hexStringToByteArray(salt)));
+	private Session createNewSession(String user, String salt)
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+		String id = getHexValue(getEncryptedPassword(user, hexStringToByteArray(salt)));
 		System.out.println(id);
-		long time =0;
-		Session session = new Session (id, user, time);
+		long time = 1200000;
+		Session session = new Session(id, user, time);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			File db = new File("/web/cms/session/"+session.getUser().split(":")[0]+"_"+session.getId() + ".json");
+			File db = new File("/web/cms/session/" + session.getUser().split(":")[0] + "_" + session.getId() + ".json");
 			mapper.writeValue(db, session);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return session;
 	}
-	
-	
-	@RequestMapping(value = { "/cms/logout" }, method = { RequestMethod.GET})
-	public void logout(){
-		//to be done.
+
+	@RequestMapping(value = { "/cms/logout" }, method = { RequestMethod.GET })
+	public ModelAndView logout(ModelAndView model, HttpSession session) {
+		String id = (String) session.getAttribute("sessionID");
+		System.out.println(id);
+		String[] file = new File("/web/cms/session/").list();
+		for (int i = 0; i < file.length; i++) {
+			File json = new File("/web/cms/session/" + file[i]);
+			if (json.getName().contains(id)) {
+				System.out.println("id: " + id + "json deleted " + json.getName());
+				json.delete();
+			}
+		}
+
+		session.removeAttribute("sessionUser");
+		session.removeAttribute("sessionID");
+		session.removeAttribute("sessionText");
+		session.removeAttribute("sessionHref");
+		model.setViewName("/cms/logon.html");
+		return model;
+
 	}
 
-	
-	
-	
-	
-	private  byte[] getEncryptedPassword(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	private byte[] getEncryptedPassword(String password, byte[] salt)
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
 		String algorithm = "PBKDF2WithHmacSHA256";
 		int derivedKeyLength = 256;
 		int iterations = 20000;
@@ -232,8 +246,8 @@ public class CMSController {
 		return f.generateSecret(spec).getEncoded();
 
 	}
-	
-	private String getHexValue(byte[] passbtye){
+
+	private String getHexValue(byte[] passbtye) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < passbtye.length; i++) {
 			sb.append(Integer.toString((passbtye[i] & 0xff) + 0x100, 16).substring(1));
@@ -241,15 +255,14 @@ public class CMSController {
 
 		return sb.toString();
 	}
-	
+
 	private byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    byte[] data = new byte[len / 2];
-	    for (int i = 0; i < len; i += 2) {
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-	                             + Character.digit(s.charAt(i+1), 16));
-	    }
-	    return data;
+		int len = s.length();
+		byte[] data = new byte[len / 2];
+		for (int i = 0; i < len; i += 2) {
+			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+		}
+		return data;
 	}
 
 }
