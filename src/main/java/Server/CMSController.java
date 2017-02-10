@@ -36,29 +36,6 @@ import POJO.User;
 @Controller
 public class CMSController {
 
-	String user = "no user";
-
-	/**
-	 * Creating an endpoint to bring user the CMS loading page.(GET)
-	 * 
-	 * @param model
-	 * @return index.html
-	 */
-	// creates an new endpoint in this example its /login (www.websites.com/cms)
-	@RequestMapping(value = { "/cms" }, method = { RequestMethod.GET })
-	public ModelAndView index(ModelAndView model) {
-		model.setViewName("/cms/index.html");
-		/*
-		 * //adding $variables The first para is the name you see in the html.
-		 * here i name it $user. The second value is the the value you want it
-		 * display when the html renders. e.g: Welcome: <p th:text="${user}">
-		 * <p/>
-		 * 
-		 */
-		model.addObject("user", user);
-		return model;
-	}
-
 	/**
 	 * Getting the login page.
 	 * 
@@ -67,9 +44,15 @@ public class CMSController {
 	 * @param response
 	 * @return
 	 */
-	@RequestMapping(value = { "/cms/logon" }, method = { RequestMethod.GET })
-	public ModelAndView logon(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
-		model.setViewName("/cms/logon.html");
+	@RequestMapping(value = { "/cms" }, method = { RequestMethod.GET })
+	public ModelAndView logon(ModelAndView model, HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
+		System.out.println(session.getAttribute("sessionID"));
+		if (session.isNew()  || session.getAttribute("sessionID") == null) {
+			model.setViewName("/cms/logon.html");
+		} else if (!session.isNew() && session.getAttribute("sessionID") != null) {
+			model.setViewName("/cms/index.html");
+		}
 		return model;
 	}
 
@@ -132,6 +115,92 @@ public class CMSController {
 		return model;
 
 	}
+	
+	private boolean checkSession(HttpSession session) throws IOException{
+		String id = (String) session.getAttribute("sessionID");
+		boolean sessionAlive = false;
+		if (id != null) {
+			System.out.println(id);
+			File json = new File("/web/cms/session/");
+			File[] list = json.listFiles();
+			for (int i = 0; i < list.length; i++) {
+				if (list[i].getName().contains(id)) {
+					sessionAlive = true;
+					break;
+				}
+			}
+
+			
+	}
+		return sessionAlive;
+	}
+	
+
+	@RequestMapping(value = { "/cms/addPage" }, method = { RequestMethod.GET })
+	public void createNewPage( HttpSession session, HttpServletResponse response) throws IOException {
+		String id = (String) session.getAttribute("sessionID");
+		if (id != null) {
+			
+			if (checkSession(session)) {
+				response.sendRedirect("/cms/apps/creator");
+					
+			}
+			else if(!checkSession(session)){
+				response.sendRedirect("/cms/sessionend");
+			}
+
+		}
+		
+		
+	}
+	
+	@RequestMapping(value = { "/cms/apps/creator" }, method = { RequestMethod.GET })
+		public ModelAndView creator( ModelAndView model ,HttpSession session, HttpServletResponse response) throws IOException {
+		if (checkSession(session)) {
+			model.setViewName("cms/apps/pagecreator/creator.html");
+				
+		}
+		else if(!checkSession(session)){
+			response.sendRedirect("/cms/sessionend");
+		}
+	
+			return model;
+		
+		
+		}
+		
+	
+	
+	@RequestMapping(value = { "/cms/sessionend" }, method = { RequestMethod.GET })
+	public ModelAndView sessionend( ModelAndView model ,HttpSession session, HttpServletResponse response) throws IOException, InterruptedException {
+		boolean notfound = false;
+		String id = (String) session.getAttribute("sessionID");
+		String[] file = new File("/web/cms/session/").list();
+		for (int i = 0; i < file.length; i++) {
+			File json = new File("/web/cms/session/" + file[i]);
+			if (!json.getName().contains(id)) {
+				notfound = true;
+				break;
+			}
+		}
+		
+		if(notfound){
+		session.removeAttribute("sessionUser");
+		session.removeAttribute("sessionID");
+		session.removeAttribute("sessionText");
+		session.removeAttribute("sessionHref");
+		session.invalidate();
+		model.setViewName("/cms/sessionend.html");
+		}
+		else if(session.getAttribute("SessionID") !=null && (!notfound)){
+			 response.sendRedirect("/cms");
+		}
+		return model;
+	
+	
+	}
+
+	
 
 	/**
 	 * Login in. here i set the user. later on ill make this grab something from
@@ -141,12 +210,13 @@ public class CMSController {
 	 * @return
 	 * @throws InvalidKeySpecException
 	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
 	 */
 	// creates an new endpoint in this example its /login
 	// (www.websites.com/cms/login)
 	@RequestMapping(value = { "/cms/login" }, method = { RequestMethod.POST })
 	public ModelAndView login(ModelAndView model, HttpServletRequest request, HttpServletResponse response,
-			HttpSession session) throws NoSuchAlgorithmException, InvalidKeySpecException {
+			HttpSession session) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		String[] userlist = new File("/web/cms/users/").list();
 		boolean login = false;
@@ -186,7 +256,8 @@ public class CMSController {
 			session.setAttribute("sessionID", sess.getId());
 			session.setAttribute("sessionText", "Logout");
 			session.setAttribute("sessionHref", "/cms/logout");
-			model.setViewName("/cms/index.html");
+			session.setMaxInactiveInterval(1200);
+			response.sendRedirect("/cms");
 
 		} else if (!login) {
 			model.setViewName("/cms/failed.html");
@@ -217,7 +288,6 @@ public class CMSController {
 	@RequestMapping(value = { "/cms/logout" }, method = { RequestMethod.GET })
 	public ModelAndView logout(ModelAndView model, HttpSession session) {
 		String id = (String) session.getAttribute("sessionID");
-		System.out.println(id);
 		String[] file = new File("/web/cms/session/").list();
 		for (int i = 0; i < file.length; i++) {
 			File json = new File("/web/cms/session/" + file[i]);
@@ -231,7 +301,9 @@ public class CMSController {
 		session.removeAttribute("sessionID");
 		session.removeAttribute("sessionText");
 		session.removeAttribute("sessionHref");
+		session.invalidate();
 		model.setViewName("/cms/logon.html");
+
 		return model;
 
 	}

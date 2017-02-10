@@ -23,6 +23,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import Service.SessionManagement;
+
 public class WebMain {
 
 	/**
@@ -34,12 +36,15 @@ public class WebMain {
 	public static void main(String[] args) {
 		try {
 			new WebMain().startJetty(80);
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	private void startJetty(int port) throws Exception {
+		new  SessionManagement();
 		System.err.println("Starting server at port {}" + port);
 		Server server = new Server(port);
 		
@@ -54,6 +59,8 @@ public class WebMain {
 		server.setHandler(handlerList);
 		server.start();
 		server.join();
+		
+		
 
 	}
 
@@ -66,8 +73,7 @@ public class WebMain {
 		
 		SessionHandler sessions = new SessionHandler(manager);
 		contextHandler.setSessionHandler(sessions);
-		DispatcherServlet dispatcher;
-		ServletHolder holder = new ServletHolder(dispatcher = new DispatcherServlet(context));
+		ServletHolder holder = new ServletHolder(new DispatcherServlet(context));
 		holder.getRegistration().setMultipartConfig(new MultipartConfigElement("/web/uplaods"));
 		contextHandler.addServlet(holder, "/*");
 		contextHandler.addEventListener(new ContextLoaderListener(context));

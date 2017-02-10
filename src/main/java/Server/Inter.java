@@ -29,7 +29,8 @@ public class Inter extends HandlerInterceptorAdapter {
 			res.setStatus(HttpServletResponse.SC_OK);
 			res.setHeader("Video", file.getName());
 		}
-
+		
+		System.out.println(request.getRequestURI());
 		
 
 		return true;
@@ -51,7 +52,7 @@ public class Inter extends HandlerInterceptorAdapter {
 
 		}
 		
-		System.out.println("/web/"+model.getViewName());
+		
 		StringBuilder head = new StringBuilder();
 		head.append("<!-- Latest compiled " + "and minified CSS -->\r\n<link rel=\"stylesheet\""
 				+ " href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" "
