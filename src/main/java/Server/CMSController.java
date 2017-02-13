@@ -150,6 +150,9 @@ public class CMSController {
 			}
 
 		}
+		else{
+			response.sendRedirect("/cms");
+		}
 		
 		
 	}
@@ -195,6 +198,7 @@ public class CMSController {
 		else if(session.getAttribute("SessionID") !=null && (!notfound)){
 			 response.sendRedirect("/cms");
 		}
+		model.setViewName("/cms/sessionend.html");
 		return model;
 	
 	
