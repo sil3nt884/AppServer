@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -37,12 +38,19 @@ public class IndexController {
 	public void getUploads() {
 
 		File folder = new File("/web/data");
-		System.err.println(folder.getAbsolutePath());
 		File[] list = folder.listFiles();
 		lists = list;
 
 	}
 
+	/**
+	 * File upload handler
+	 * 
+	 * @param file
+	 * @param response
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = { "/upload" }, method = { RequestMethod.POST })
 	public String upload(@RequestParam("upload") MultipartFile file, HttpServletResponse response) throws IOException {
 
@@ -50,20 +58,17 @@ public class IndexController {
 		InputStream in = file.getInputStream();
 		ReadableByteChannel inChannel = Channels.newChannel(in);
 		FileOutputStream out = new FileOutputStream(newfile);
-		WritableByteChannel outChannel = Channels.newChannel(out);	
+		WritableByteChannel outChannel = Channels.newChannel(out);
 		ByteBuffer buffer = ByteBuffer.allocate(8192);
 		int read = 0;
-		while((read = inChannel.read(buffer)) >0){
+		while ((read = inChannel.read(buffer)) > 0) {
 			buffer.rewind();
 			buffer.limit(read);
-			while(read> 0){
+			while (read > 0) {
 				read -= outChannel.write(buffer);
 			}
-			 buffer.clear();
+			buffer.clear();
 		}
-	
-		
-	
 
 		if (newfile.getName().contains(".jpg")) {
 
@@ -71,12 +76,10 @@ public class IndexController {
 		}
 
 		return "redirect:/";
-
-	}
+}
 
 	private void compressedimage(File newfile) {
 		try {
-			System.out.println("compressed " + newfile.getName());
 			BufferedImage image = ImageIO.read(newfile.getAbsoluteFile());
 			File compressedImageFile = new File("/web/data/" + newfile.getName());
 			OutputStream os = new FileOutputStream(compressedImageFile);
@@ -100,6 +103,20 @@ public class IndexController {
 		}
 
 	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Request upload endpoint.
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 
 	@RequestMapping(value = { "/uploads" }, method = { RequestMethod.GET })
 	public ModelAndView getUpload(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
@@ -107,12 +124,37 @@ public class IndexController {
 		return model;
 
 	}
+	
+	
+	
+	
+	
+	
+	@RequestMapping(value = { "/cms/users/**"}, method = { RequestMethod.GET })
+	public  ModelAndView block(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		model.setViewName("/cms/nope/nope.html");
+		return model;
+
+	}
+	
+	@RequestMapping(value = { "/cms/session/**"}, method = { RequestMethod.GET })
+	public  ModelAndView sessionblock(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		model.setViewName("/cms/nope/nope.html");
+		return model;
+
+	}
+	
+	
+	
 
 	@RequestMapping(value = { "/" }, method = { RequestMethod.GET })
-	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+	public ModelAndView getDomain(ModelAndView model, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		getUploads();
 		model.addObject("files", lists);
 		model.setViewName("index.html");
+		
 		return model;
 	}
 
